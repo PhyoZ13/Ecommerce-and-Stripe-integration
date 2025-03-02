@@ -13,9 +13,12 @@ class PaymentController extends Controller
 {
     use ApiResponseTrait;
 
-    public function createCheckoutSession(Request $request)
+    /*
+        Stripe Docs:  https://docs.stripe.com/payments/checkout/how-checkout-works?payment-ui=embedded-form#branding
+    */
+    public function createCheckoutSession(Request $request) 
     {
-        $order = Order::where('user_id', Auth::id())->where('status', 'pending')->latest()->first();
+        $order = Order::where('id', $request->order_id)->where('status', 'pending')->latest()->first();
 
         if (!$order) {
             return $this->error('No pending order found', 400);
@@ -45,7 +48,7 @@ class PaymentController extends Controller
             'cancel_url' => url('/api/payment/cancel'),
         ]);
 
-        return $this->success(['url' => $checkoutSession->url], 'Payment session created');
+        return $this->success(['session_id' => $checkoutSession->id], 'Payment session created');
     }
 
     public function paymentSuccess(Request $request)
